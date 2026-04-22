@@ -7,10 +7,8 @@ export function NavBar() {
     { to: "/", label: "Home" },
     { to: "/about", label: "About Me" },
     { to: "/gallery", label: "Gallery" },
-    { to: "/testimonials", label: "Testimonials" },
     { to: "/contact", label: "Contact" },
     { to: "/stories", label: "Stories" },
-    
   ];
 
   return (

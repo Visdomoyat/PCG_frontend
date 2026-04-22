@@ -49,6 +49,52 @@ function Landing() {
         </div>
       </section>
 
+      <section className="mt-8 sm:mt-10">
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="text-2xl font-bold text-zinc-950 sm:text-3xl">
+            What clients say
+          </h2>
+          <Link
+            to="/contact"
+            className="text-sm font-semibold text-zinc-900 underline decoration-zinc-400 underline-offset-4 hover:decoration-zinc-900"
+          >
+            Work with Greg
+          </Link>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <article className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <p className="text-sm leading-6 text-zinc-700">
+              "Every course was thoughtful and perfectly timed. It felt like a
+              restaurant experience in our own home."
+            </p>
+            <p className="mt-4 text-sm font-semibold text-zinc-950">
+              Sarah M. - Anniversary Dinner
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <p className="text-sm leading-6 text-zinc-700">
+              "Greg tailored both food and coaching around my training block.
+              I felt stronger within weeks."
+            </p>
+            <p className="mt-4 text-sm font-semibold text-zinc-950">
+              Daniel R. - Athlete Nutrition Plan
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <p className="text-sm leading-6 text-zinc-700">
+              "Our birthday event was seamless, professional, and delicious.
+              Guests are still talking about the menu."
+            </p>
+            <p className="mt-4 text-sm font-semibold text-zinc-950">
+              Priya K. - Private Birthday Event
+            </p>
+          </article>
+        </div>
+      </section>
+
       {/* Culinary + training split */}
       <section className="mt-10 grid gap-3 lg:grid-cols-2 lg:gap-10">
         <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
