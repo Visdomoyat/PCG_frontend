@@ -1,7 +1,13 @@
 import type { Route } from "./+types/about";
 import { useState } from "react";
-import { Link } from "react-router";
+import {
+  isRouteErrorResponse,
+  Link,
+  useLoaderData,
+  useRouteError,
+} from "react-router";
 import { NavBar } from "../components/NavBar/navbar";
+import { apiBaseUrl } from "../apiBaseUrl";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -14,7 +20,81 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+const API_BASE = apiBaseUrl();
+
+function siteContentUrl(request: Request): string {
+  if (import.meta.env.DEV && !import.meta.env.SSR) {
+    return new URL("/api/v1/site-content/", request.url).href;
+  }
+  return `${API_BASE}/api/v1/site-content/`;
+}
+
+type SiteContent = Record<string, unknown>;
+
+function getStringValue(content: SiteContent, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = content[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function extractContentFromResponse(payload: unknown): SiteContent {
+  if (Array.isArray(payload) && payload.length > 0) {
+    return extractContentFromResponse(payload[0]);
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    const content = record.content;
+    if (content && typeof content === "object") {
+      return content as SiteContent;
+    }
+    return record;
+  }
+  return {};
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const response = await fetch(siteContentUrl(request));
+  if (!response.ok) {
+    throw new Response("Failed to fetch site content from backend API.", {
+      status: response.status,
+    });
+  }
+
+  const payload: unknown = await response.json();
+  const content = extractContentFromResponse(payload);
+
+  const personalBio = getStringValue(content, [
+    "personalBio",
+    "personal_bio",
+    "bio_personal",
+    "personal",
+  ]);
+  const professionalBio = getStringValue(content, [
+    "professionalBio",
+    "professional_bio",
+    "bio_professional",
+    "professional",
+  ]);
+
+  if (!personalBio || !professionalBio) {
+    throw new Response(
+      "Site content API is missing personal/professional bio fields.",
+      { status: 502 },
+    );
+  }
+
+  return { personalBio, professionalBio };
+}
+
 export default function About() {
+  const data = useLoaderData<typeof loader>();
+  const personalBio = data?.personalBio ?? "";
+  const professionalBio = data?.professionalBio ?? "";
   const [showPersonalBio, setShowPersonalBio] = useState(false);
   const [showProfessionalBio, setShowProfessionalBio] = useState(false);
 
@@ -46,7 +126,7 @@ export default function About() {
               The person behind the food
             </h2>
             <p
-              className="text-zinc-700"
+              className="whitespace-pre-line text-zinc-700"
               style={
                 showPersonalBio
                   ? undefined
@@ -58,29 +138,7 @@ export default function About() {
                     }
               }
             >
-              Greg grew up in a military household where change was constant and structure was a given. 
-              He spent a large part of his childhood living overseas, surrounded by different cultures, people, and ways of life. 
-              That environment shaped him early,it taught him how to adapt, listen, and move comfortably through unfamiliar spaces. <br />
-
-              At home, there was a strong foundation. His father worked in law enforcement, his mother was an engineer, and his stepfather served in the military.
-              Between them, discipline, respect, and accountability weren’t optional; they were simply how things were done. Setting goals, 
-              following through, and taking education seriously were expectations, not suggestions. <br /> <br />   
-
-              Right out of high school, he was drafted into the minor leagues and spent two years playing professional baseball. 
-              For a time, that was his path. When that chapter came to an end, however, he found himself in a place many people experience 
-              but don’t often discuss—out of shape, off track, yet still searching for what was next. <br /> <br />
-
-              That period forced a shift. He made the decision to rebuild physically, mentally, and personally. He attended culinary school, 
-              earned certifications in fitness, and committed to living a healthier lifestyle. What began as a personal reset developed into something deeper. <br />
-
-              He realized he didn’t just want to improve himself; he wanted to support others at a high level. Not in one lane, but across the board. 
-              Through personal experience, his goal became to create a well-rounded approach to performance and well-being: 
-              to be someone who could cook with intention, train with purpose, and understand nutrition in a way that translates into real life. <br />
-
-              At the core of it all is a simple belief: everything is connected. The way you eat, the way you move, and the way you take care of yourself 
-              mentally all feed into each other. When those elements are aligned, performance; whatever that looks like for the individual follows. <br />
-
-              This is the foundation he continues to build on. <br /> <br />
+              {personalBio}
             </p>
             <button
               type="button"
@@ -99,7 +157,7 @@ export default function About() {
               Culinary and performance expertise
             </h2>
             <p
-              className="text-zinc-700"
+              className="whitespace-pre-line text-zinc-700"
               style={
                 showProfessionalBio
                   ? undefined
@@ -111,32 +169,7 @@ export default function About() {
                     }
               }
             >
-             Greg operates at the intersection of elite performance, nutrition, and culinary precision, delivering a fully integrated 
-             approach to high-performance living. <br /> <br />
-
-             A top-of-class culinary school graduate, he brings over five years of experience as a private chef serving elite professional athletes. 
-             His work goes far beyond preparing meals. He designs and executes complete nutritional systems that directly support performance, 
-             recovery, and long-term career sustainability. <br /> <br />
-
-             Before stepping into the culinary and performance space, he was drafted out of high school to play professional baseball 
-             as a catcher in the minor leagues. That firsthand experience competing at a high level gives him a deep, practical understanding 
-             of the physical and mental demands athletes face daily. <br /> <br />
-
-             He holds multiple certifications through NASM, including Personal Training, Nutrition Coaching, Corrective Exercise, and 
-             Performance Enhancement. This foundation allows him to bridge the gap between the kitchen and performance training, aligning food, 
-             movement, and recovery into one cohesive strategy. <br /> <br />
-
-             As a Performance Chef, he takes responsibility for the entire performance ecosystem—supporting injury prevention, optimizing recovery, 
-             and maximizing output through precision-based nutrition. Every meal, ingredient, and protocol is intentional and aligned with measurable 
-             results. <br /> <br />
-
-             His culinary range spans all cuisines, including vegan and specialized diets, with an emphasis on clean, functional, 
-             and performance-driven nutrition. He also specializes in advanced juicing protocols, creating unique organic blends designed for 
-             pre- and post-workout recovery, gut health, energy optimization, and immune support. <br /> <br />
-
-             As a High-Performance Lifestyle Coach, he combines the skill set of an elite private chef, 
-             the science of a nutrition expert, and the application of a strength and conditioning specialist—offering clients a comprehensive, 
-             results-driven system built for those who demand the highest level of performance in every area of life. <br /> <br />
+             {professionalBio}
             </p>
             <button
               type="button"
@@ -188,6 +221,38 @@ export default function About() {
           >
             Contact Chef Greg
           </Link>
+        </section>
+      </main>
+    </>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  const message = isRouteErrorResponse(error)
+    ? error.data || "Unable to load About page content."
+    : error instanceof Error
+      ? error.message
+      : "Unexpected error loading About page.";
+
+  return (
+    <>
+      <NavBar />
+      <main className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-6 sm:p-10">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-red-700">
+            Content Loading Error
+          </p>
+          <h1 className="mb-4 text-3xl font-bold leading-tight text-red-950 sm:text-4xl md:text-5xl">
+            Could not load bio content from API
+          </h1>
+          <p className="max-w-3xl text-base text-red-800 sm:text-lg">{message}</p>
+          <p className="mt-4 text-sm text-red-700">
+            In development, API calls go through the Vite proxy (`/api` → Django).
+            Confirm the backend is running and set `VITE_API_BASE_URL` (or
+            `VITE_API_URL`) for production builds.
+          </p>
         </section>
       </main>
     </>

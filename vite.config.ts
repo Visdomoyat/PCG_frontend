@@ -8,4 +8,15 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  // Browser loaders call the API from the Vite origin. Without this proxy,
+  // cross-origin requests to Django fail CORS and client-side navigations
+  // (e.g. Link to /stories) never complete even though a full-page load works (SSR).
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
+  },
 });
